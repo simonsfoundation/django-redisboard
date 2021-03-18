@@ -68,7 +68,7 @@ class RedisServerAdmin(admin.ModelAdmin):
     clients.long_description = _("Clients")
 
     def tools(self, obj):
-        return mark_safe('<a href="%s">%s</a>' % (
+        return mark_safe('<a class="button" href="%s">%s</a>' % (
             reverse("admin:redisboard_redisserver_inspect", args=(obj.id,)),
             unicode(_("Inspect"))
         ))

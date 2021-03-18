@@ -121,7 +121,7 @@
                     <td>{{ key_detail.length }}</td>
                     <td>{{ key_detail.idletime }}</td>
                     <td>{{ key_detail.refcount }}</td>
-<td><a href="{% url 'admin:redisboard_redisserver_delete' original.id %}?key={{ key|url_encode }}&db={{ db }}"}>delete</a></td>
+<td><a class="deletelink" href="{% url 'admin:redisboard_redisserver_delete' original.id %}?key={{ key|url_encode }}&db={{ db }}"}>Delete</a></td>
                     {% endif %}
                 </tr>
                 {% endfor %}
