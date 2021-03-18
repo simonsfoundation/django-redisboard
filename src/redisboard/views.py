@@ -268,7 +268,7 @@ def delete(request, server):
             return _delete_key(request, conn, db, key)
     else:
         messages.error(request, f'Server is down')
-        return redirect('/bomberman/redisboard/redisserver/')
+        return redirect('admin:redisboard_redisserver_changelist')
 
 def inspect(request, server):
     stats = server.stats
