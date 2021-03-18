@@ -4,11 +4,13 @@ from logging import getLogger
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import HttpResponseNotFound
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from redis.exceptions import ResponseError
 
 from .utils import PY3
 from .utils import LazySlicingIterable
+from django.contrib import messages
+
 
 try:
     from django.utils.datastructures import SortedDict as OrderedDict
@@ -123,6 +125,18 @@ VALUE_GETTERS = {
     'n/a': lambda conn, key, *args: (),
     'none': lambda conn, key, *args: (),
 }
+
+def _delete_key(request, conn, db, key):
+    db_selected = conn.execute_command('SELECT', db)
+    if not db_selected:
+        messages.error(request, 'DB connection failed')
+        return redirect('admin:redisboard_redisserver_changelist')
+    deleted = conn.execute_command('DEL', key)
+    if not deleted:
+        messages.error(request, f'Unable to delete key {key}')
+        return redirect('admin:redisboard_redisserver_changelist')
+    messages.success(request, f'Key {key} deleted.')
+    return redirect('admin:redisboard_redisserver_changelist')
 
 
 def _get_key_details(conn, db, key, page):
@@ -243,13 +257,24 @@ def _get_db_details(server, db):
         sampling=sampling,
     )
 
+def delete(request, server):
+    stats = server.stats
+    conn = server.connection
+    database_details = OrderedDict()
+    if stats['status'] == 'UP':
+        if 'key' in request.GET:
+            key = request.GET['key']
+            db = request.GET.get('db', 0)
+            return _delete_key(request, conn, db, key)
+    else:
+        messages.error(request, f'Server is down')
+        return redirect('/bomberman/redisboard/redisserver/')
 
 def inspect(request, server):
     stats = server.stats
     conn = server.connection
     database_details = OrderedDict()
     key_details = None
-
     if stats['status'] == 'UP':
         if 'key' in request.GET:
             key = request.GET['key']

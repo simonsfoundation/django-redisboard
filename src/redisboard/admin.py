@@ -8,12 +8,9 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import RedisServer
 from .utils import PY3
-from .views import inspect
-
-try:
-    from django.urls import reverse
-except ImportError:
-    from django.core.urlresolvers import reverse
+from .views import inspect, delete
+from django.urls import reverse
+from django.conf.urls import re_path
 
 if PY3:
     unicode = str
@@ -118,10 +115,6 @@ class RedisServerAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         urlpatterns = super(RedisServerAdmin, self).get_urls()
-        try:
-            from django.conf.urls import url
-        except ImportError:
-            from django.conf.urls.defaults import url
 
         def wrap(view):
             def wrapper(*args, **kwargs):
@@ -129,10 +122,21 @@ class RedisServerAdmin(admin.ModelAdmin):
 
             return update_wrapper(wrapper, view)
 
-        return [url(r'^(\d+)/inspect/$',
+        return [re_path(r'^(\d+)/inspect/$',
                     wrap(self.inspect_view),
-                    name='redisboard_redisserver_inspect')
+                    name='redisboard_redisserver_inspect'),
+                re_path(r'^(\d+)/delete/$',
+                        wrap(self.delete_key),
+                        name='redisboard_redisserver_delete'),
                 ] + urlpatterns
+
+    def delete_key(self, request, server_id):
+        server = get_object_or_404(RedisServer, id=server_id)
+        if request.user.is_superuser:
+            return delete(request, server)
+        else:
+            return HttpResponseForbidden("You can't delete keys.")
+
 
     def inspect_view(self, request, server_id):
         server = get_object_or_404(RedisServer, id=server_id)

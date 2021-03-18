@@ -106,6 +106,7 @@
                     <th>{% trans "Items" %}</th>
                     <th>{% trans "Idletime" %}</th>
                     <th>{% trans "Refs" %}</th>
+    <th>{% trans "Delete" %}</th>
                 </tr>
 
                 {% for key, key_detail in db_detail.keys.items %}
@@ -120,6 +121,7 @@
                     <td>{{ key_detail.length }}</td>
                     <td>{{ key_detail.idletime }}</td>
                     <td>{{ key_detail.refcount }}</td>
+<td><a href="{% url 'admin:redisboard_redisserver_delete' original.id %}?key={{ key|url_encode }}&db={{ db }}"}>delete</a></td>
                     {% endif %}
                 </tr>
                 {% endfor %}
@@ -139,6 +141,7 @@
                     <th>{% trans "Items" %}</th>
                     <th>{% trans "Idletime" %}</th>
                     <th>{% trans "Refs" %}</th>
+
                 </tr>
                 <tr>
                     {% if key_details.error %}
@@ -150,6 +153,7 @@
                     <td>{{ key_details.length }}</td>
                     <td>{{ key_details.idletime }}</td>
                     <td>{{ key_details.refcount }}</td>
+
                     {% endif %}
                 </tr>
             </table>
